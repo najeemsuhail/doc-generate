@@ -324,18 +324,38 @@ elif menu == "📚 Help":
     
     with st.expander("📄 How to Create Word Template"):
         st.markdown("""
-        1. Open Microsoft Word
-        2. Create your letter template with formatting, logo, etc.
-        3. Add placeholders like:
-           - `{CUSTOMER_NAME}` - Customer name
-           - `{ADDRESS}` - Customer address
-           - `{BILLING_ACCOUNT}` - Billing account
-           - `{DEPARTMENT}` - Department
-           - `{outstanding:,.2f}` - Outstanding amount
-           - `{DATE}` - Letter date
-           - Any other custom fields
-        4. Save as .docx file
-        5. Upload in app under "Upload Word Template"
+        1. **Open Microsoft Word** and create your letter template
+        
+        2. **Add placeholders** using column names from your Excel:
+           - Use format: `{COLUMN_NAME}`
+           - Can use spaces: `{CUSTOMER NAME}`
+           - Or underscores: `{CUSTOMER_NAME}`
+           - Or no spaces: `{CUSTOMERNAME}`
+           - Case insensitive - all work!
+        
+        3. **Common placeholders:**
+           - `{CUSTOMER NAME}` - Customer name
+           - `{Billing Account}` - Account number
+           - `{Outstanding amount in Rs}` - Outstanding amount
+           - `{Department}` - Department
+           - `{Address}` - Customer address
+           - `{CLOSURE DATE}` - Closure date
+           - `{Status(Active/Inactive)}` - Account status
+           - **Any column from your Excel file!**
+        
+        4. **Example template:**
+           ```
+           Dear {CUSTOMER NAME},
+           
+           Outstanding amount: Rs. {Outstanding amount in Rs}/-
+           Account: {Billing Account}
+           Department: {Department}
+           
+           Regards
+           ```
+        
+        5. **Save as .docx file** (Microsoft Word format)
+        6. **Upload in app** - it will auto-detect all placeholders!
         """)
     
     with st.expander("✏️ How to Use Text Templates"):
