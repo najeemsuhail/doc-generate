@@ -1,0 +1,10 @@
+.venv/
+dist/
+build/
+output_letters/
+*.pyc
+__pycache__/
+.DS_Store
+*.xlsx
+*.docx
+.streamlit/secrets.toml
