@@ -76,7 +76,7 @@ with st.sidebar:
     st.header("📌 Navigation")
     menu = st.radio(
         "Select Feature:",
-        ["🏠 Home", "📧 Generate Letters", "⚙️ Settings", "📚 Help", "ℹ️ About"],
+        ["🏠 Home", "📧 Generate Letters", "📚 Help"],
         label_visibility="collapsed"
     )
     st.divider()
@@ -148,224 +148,46 @@ elif menu == "📧 Generate Letters":
         st.info(f"Total rows: {len(df)}")
 
     # Step 2: Choose Template Source
-    st.header("📋 Step 2: Choose Template Source")
+    st.header("📋 Step 2: Upload Word Template")
     
-    template_source = st.radio(
-        "Select template type:",
-        ["📄 Upload Word Template (.docx)", "📝 Use Text Template"],
-        horizontal=True
+    st.info("✓ Upload your own formatted Word document template with placeholders like {CUSTOMER_NAME}, {BILLING_ACCOUNT}, etc.")
+    
+    template_file = st.file_uploader(
+        "Choose Word template file",
+        type=['docx'],
+        key="template_upload"
     )
     
-    template_doc = None
-    active_template = ""
-    inactive_template = ""
+    if not template_file:
+        st.warning("Please upload a Word template file (.docx)")
+        st.stop()
     
-    if template_source == "📄 Upload Word Template (.docx)":
-        st.info("✓ Upload your own formatted Word document template with placeholders like {CUSTOMER_NAME}, {BILLING_ACCOUNT}, etc.")
+    try:
+        template_doc = Document(template_file)
+        st.success("✓ Template loaded successfully!")
         
-        template_file = st.file_uploader(
-            "Choose Word template file",
-            type=['docx'],
-            key="template_upload"
-        )
+        # Extract placeholders from template
+        placeholders_found = set()
+        for paragraph in template_doc.paragraphs:
+            matches = re.findall(r'\{[^}]+\}', paragraph.text)
+            placeholders_found.update(matches)
         
-        if template_file:
-            try:
-                template_doc = Document(template_file)
-                st.success("✓ Template loaded successfully!")
-                
-                # Extract placeholders from template
-                placeholders_found = set()
-                for paragraph in template_doc.paragraphs:
-                    matches = re.findall(r'\{[^}]+\}', paragraph.text)
-                    placeholders_found.update(matches)
-                
-                for table in template_doc.tables:
-                    for row in table.rows:
-                        for cell in row.cells:
-                            for paragraph in cell.paragraphs:
-                                matches = re.findall(r'\{[^}]+\}', paragraph.text)
-                                placeholders_found.update(matches)
-                
-                if placeholders_found:
-                    available_placeholders = sorted(list(placeholders_found))
-                    st.info(f"Found placeholders: {', '.join(available_placeholders)}")
-                else:
-                    st.warning("No placeholders found in template. Use format: {PLACEHOLDER_NAME}")
-                    
-            except Exception as e:
-                st.error(f"Error loading template: {str(e)}")
+        for table in template_doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        matches = re.findall(r'\{[^}]+\}', paragraph.text)
+                        placeholders_found.update(matches)
+        
+        if placeholders_found:
+            available_placeholders = sorted(list(placeholders_found))
+            st.info(f"Found placeholders: {', '.join(available_placeholders)}")
         else:
-            st.warning("Please upload a Word template file (.docx)")
-            st.stop()
-    
-    else:
-        st.info("✓ Using text-based templates to generate letters")
-        
-        # Pre-defined templates
-        templates = {
-            "payment_reminder": {
-                "label": "Payment Reminder",
-                "active": """Dear {CUSTOMER_NAME},
-
-We are reaching out regarding your account status and outstanding balance.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-Please review your account and ensure all payments are up to date. If you have any outstanding balance, we request you to settle it at your earliest convenience.
-
-Payment Options:
-• Bank transfer
-• Check by mail
-• Online payment portal
-• Digital payment methods
-
-If you have already made a payment or have any questions about your account, please feel free to contact us.
-
-We value your business and look forward to a continued relationship with you.""",
-                "inactive": """Dear {CUSTOMER_NAME},
-
-We are writing to inform you regarding your account.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-Please take immediate action on your account. If you have any questions or need assistance, please contact us without delay."""
-            },
-            
-            "collection_notice": {
-                "label": "Collection Notice",
-                "active": """URGENT: Payment Required
-
-Dear {CUSTOMER_NAME},
-
-Our records indicate an outstanding balance on your account that requires immediate payment.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-Failure to pay may result in suspension of services. Please remit payment within 7 days.
-
-Payment Methods:
-• Bank transfer
-• Check by mail
-• Online payment portal
-
-Contact us immediately if you have any questions.""",
-                "inactive": """FINAL NOTICE: Account Status
-
-Dear {CUSTOMER_NAME},
-
-Your account has been marked inactive with an outstanding balance.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-Please settle this amount immediately to reinstate your account."""
-            },
-            
-            "account_status": {
-                "label": "Account Status",
-                "active": """Dear {CUSTOMER_NAME},
-
-We are writing to confirm the current status of your account.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-• Account Status: Active
-
-Your account is currently active. Please ensure all outstanding amounts are settled to avoid service interruption.
-
-If you have any questions regarding your account balance or need payment assistance, please contact us.
-
-Thank you for your business.""",
-                "inactive": """Dear {CUSTOMER_NAME},
-
-We are writing to inform you that your account is currently inactive.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-If this is due to completion of services, no action is required. However, if you would like to reactivate your account or have outstanding payments, please contact us immediately."""
-            },
-            
-            "service_closure": {
-                "label": "Service Closure",
-                "active": """Dear {CUSTOMER_NAME},
-
-We are writing to inform you about the status of your account services.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-Please note that your services may be subject to closure if outstanding payments are not settled. We recommend immediate action.
-
-For payment arrangements or further information, please contact our office.
-
-We value your business and would appreciate the opportunity to continue serving you.""",
-                "inactive": """Final Notice: Service Closure
-
-Dear {CUSTOMER_NAME},
-
-Your account has been deactivated. There is an outstanding balance that requires settlement.
-
-Account Details:
-• Billing Account: {billing_account}
-• Department: {department}
-• Outstanding Amount: ₹{outstanding:,.2f}
-
-To prevent further action, please settle this amount immediately."""
-            }
-        }
-        
-        selected_template = st.selectbox(
-            "Choose a template:",
-            options=list(templates.keys()),
-            format_func=lambda x: templates[x]["label"]
-        )
-        
-        st.info(f"✓ Using **{templates[selected_template]['label']}** template. Customize below if needed.")
-
-        # Letter Template Customization
-        st.header("✏️ Step 3: Customize Letter Template")
-
-        template_col1, template_col2 = st.columns(2)
-
-        with template_col1:
-            active_template = st.text_area(
-                "Active Status Letter",
-                value=templates[selected_template]["active"],
-                height=300,
-                key="active_template"
-            )
-
-        with template_col2:
-            inactive_template = st.text_area(
-                "Inactive Status Letter",
-                value=templates[selected_template]["inactive"],
-                height=300,
-                key="inactive_template"
-            )
-    
-    st.divider()
-
-    # Step 3/4: Generate Letters
-    st.header(f"🚀 Step {'3' if template_source.startswith('📄') else '4'}: Generate Letters")
+            st.warning("No placeholders found in template. Use format: {PLACEHOLDER_NAME}")
+                
+    except Exception as e:
+        st.error(f"Error loading template: {str(e)}")
+        st.stop()
 
     col1, col2, col3 = st.columns(3)
     
@@ -427,41 +249,6 @@ To prevent further action, please settle this amount immediately."""
                     # Use Word template
                     doc = deepcopy(template_doc)
                     doc = replace_text_in_document(doc, replacements)
-                else:
-                    # Create from text template
-                    doc = Document()
-                    
-                    # Header
-                    header_para = doc.add_paragraph()
-                    header_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                    header_para.add_run(f"{company_name}\n{company_address}\n{company_contact}").font.size = Pt(10)
-                    
-                    # Date
-                    doc.add_paragraph(f"\nDate: {letter_date_str}\n")
-                    
-                    # Recipient
-                    recipient_para = doc.add_paragraph()
-                    recipient_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                    recipient_para.add_run(f"{customer_name}\n{address}").font.size = Pt(11)
-                    
-                    # Body
-                    if 'inactive' in status:
-                        body = inactive_template
-                    else:
-                        body = active_template
-                    
-                    body = body.format(
-                        CUSTOMER_NAME=customer_name,
-                        customer_name=customer_name,
-                        billing_account=billing_account,
-                        department=department,
-                        outstanding=f"{outstanding:,.2f}"
-                    )
-                    
-                    doc.add_paragraph(body)
-                    
-                    # Closing
-                    doc.add_paragraph(f"\nSincerely,\n\n{sender_name}\n{sender_title}\n{company_name}")
                 
                 # Save document
                 filename = f"Letter_{str(customer_name).replace(' ', '_').replace('/', '_')}.docx"
@@ -494,30 +281,7 @@ To prevent further action, please settle this amount immediately."""
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
 
-# SETTINGS PAGE
-elif menu == "⚙️ Settings":
-    st.header("⚙️ Settings")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📋 Company Details")
-        company_name = st.text_input("Company Name", value="Your Company Name", key="settings_company")
-        company_address = st.text_input("Company Address", value="Your Address", key="settings_addr")
-        company_contact = st.text_input("Contact Info", value="[Email/Phone]", key="settings_contact")
-    
-    with col2:
-        st.subheader("👤 Sender Details")
-        sender_name = st.text_input("Sender Name", value="Your Name", key="settings_sender")
-        sender_title = st.text_input("Sender Title", value="Your Title", key="settings_title")
-    
-    st.divider()
-    
-    st.subheader("📅 Default Date Settings")
-    letter_date = st.date_input("Default letter date", value=datetime.now().date(), key="settings_date")
-    
-    if st.button("💾 Save Settings"):
-        st.success("✓ Settings saved! (Session settings)")
+
 
 # HELP PAGE
 elif menu == "📚 Help":
@@ -590,47 +354,10 @@ elif menu == "📚 Help":
         A: Make sure it's a .docx file (not .doc or .pdf)
         """)
 
-# ABOUT PAGE
-elif menu == "ℹ️ About":
-    st.header("ℹ️ About This App")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("""
-        ### Customer Letter Generator v2.0
-        
-        A powerful tool for generating personalized customer letters for bulk mailing.
-        
-        **Features:**
-        - 📄 Word template support (.docx)
-        - 📝 4 pre-built text templates
-        - 📁 Excel file import
-        - 📅 Configurable dates
-        - 📥 ZIP download
-        - 🎨 Full customization
-        
-        **Technology Stack:**
-        - Python 3.14
-        - Streamlit (Web Interface)
-        - python-docx (Word generation)
-        - pandas (Data processing)
-        - openpyxl (Excel reading)
-        """)
-    
-    with col2:
-        st.info("""
-        **Version:** 2.0
-        
-        **Date:** Feb 9, 2026
-        
-        **Features:** Word Templates
-        """)
-
 # Footer
 st.divider()
 st.markdown("""
 <div style='text-align: center; color: gray; font-size: 12px;'>
-    Customer Letter Generator v2.0 | Ready to deploy
+    Customer Letter Generator v2.0 | Word Template Edition
 </div>
 """, unsafe_allow_html=True)
