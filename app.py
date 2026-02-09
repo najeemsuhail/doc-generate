@@ -245,10 +245,9 @@ elif menu == "📧 Generate Letters":
                     '{sender_name}': sender_name,
                 }
                 
-                if template_source == "📄 Upload Word Template (.docx)":
-                    # Use Word template
-                    doc = deepcopy(template_doc)
-                    doc = replace_text_in_document(doc, replacements)
+                # Use Word template
+                doc = deepcopy(template_doc)
+                doc = replace_text_in_document(doc, replacements)
                 
                 # Save document
                 filename = f"Letter_{str(customer_name).replace(' ', '_').replace('/', '_')}.docx"
