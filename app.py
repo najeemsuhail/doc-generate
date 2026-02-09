@@ -47,13 +47,14 @@ def replace_text_in_paragraph(paragraph, replacements):
     for key, value in replacements.items():
         new_text = new_text.replace(key, str(value))
     
-    # Clear all runs
-    for _ in range(len(paragraph.runs)):
-        r = paragraph.runs[0]._element
+    # Remove all runs from the paragraph
+    for run in paragraph.runs:
+        r = run._element
         r.getparent().remove(r)
     
-    # Add the new text (preserves paragraph formatting)
-    paragraph.text = new_text
+    # Add the new text as a single run (this actually works)
+    if new_text:
+        paragraph.add_run(new_text)
 
 def replace_text_in_document(doc, replacements):
     """Replace all placeholders in document with customer data"""
@@ -67,10 +68,6 @@ def replace_text_in_document(doc, replacements):
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
                     replace_text_in_paragraph(paragraph, replacements)
-                # Also handle cell text directly (some cells might not have paragraphs)
-                if cell.text:
-                    for key, value in replacements.items():
-                        cell.text = cell.text.replace(key, str(value))
     
     return doc
 
