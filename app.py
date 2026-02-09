@@ -31,7 +31,7 @@ st.markdown("""
 st.title("📧 Customer Letter Generator")
 
 # Helper function to replace text in Word document
-def replace_text_in_paragraph(paragraph, replacements):
+def replace_text_in_paragraph(paragraph, replacements, debug=False):
     """Replace all placeholders in a paragraph, handling split runs"""
     # Get full paragraph text
     full_text = paragraph.text
@@ -40,40 +40,47 @@ def replace_text_in_paragraph(paragraph, replacements):
     needs_replacement = any(key in full_text for key in replacements.keys())
     
     if not needs_replacement:
-        return
+        return False
     
     # Replace all placeholders in the full text
     new_text = full_text
     for key, value in replacements.items():
-        new_text = new_text.replace(key, str(value))
+        if key in new_text:
+            new_text = new_text.replace(key, str(value))
+            if debug:
+                st.write(f"  ✓ Replaced: {key} → {value}")
     
-    # Remove all runs from the paragraph (clear the list first)
+    # Only proceed if text actually changed
+    if new_text == full_text:
+        return False
+    
+    # Clear paragraph completely using XML manipulation
     for run in list(paragraph.runs):
         r = run._element
         r.getparent().remove(r)
     
     # Add the replaced text as a new run
-    if new_text.strip():
-        new_run = paragraph.add_run(new_text)
-        # Copy formatting from original if possible
-        if paragraph.runs:
-            try:
-                new_run.font.size = paragraph.runs[0].font.size
-            except:
-                pass
+    paragraph.add_run(new_text)
+    return True
 
-def replace_text_in_document(doc, replacements):
+def replace_text_in_document(doc, replacements, debug=False):
     """Replace all placeholders in document with customer data"""
+    replaced_count = 0
+    
     # Replace in paragraphs
     for paragraph in doc.paragraphs:
-        replace_text_in_paragraph(paragraph, replacements)
+        if replace_text_in_paragraph(paragraph, replacements, debug):
+            replaced_count += 1
     
     # Replace in tables
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
-                    replace_text_in_paragraph(paragraph, replacements)
+                    if replace_text_in_paragraph(paragraph, replacements, debug):
+                        replaced_count += 1
+    
+    return replaced_count
     
     return doc
 
@@ -169,7 +176,13 @@ elif menu == "📧 Generate Letters":
         st.stop()
     
     try:
-        template_doc = Document(template_file)
+        # Save uploaded file to temporary location (Streamlit requirement)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+            tmp.write(template_file.getbuffer())
+            temp_template_path = tmp.name
+        
+        template_doc = Document(temp_template_path)
         st.success("✓ Template loaded successfully!")
         
         # Extract placeholders from template
@@ -253,9 +266,16 @@ elif menu == "📧 Generate Letters":
                 replacements['{CLOSURE DATE}'] = letter_date_str
                 replacements['{CLOSURE_DATE}'] = letter_date_str
                 
-                # Use Word template
-                doc = deepcopy(template_doc)
-                doc = replace_text_in_document(doc, replacements)
+                # Load fresh template for each customer (instead of deepcopy)
+                doc = Document(temp_template_path)
+                replaced_count = replace_text_in_document(doc, replacements, debug=False)
+                
+                # Show debug info for first letter only
+                if idx == 0:
+                    st.write(f"**DEBUG - First Letter ({customer_name}):**")
+                    st.write(f"Replacements created: {len(replacements)}")
+                    st.write(f"Replaced in: {replaced_count} locations")
+                    st.write(f"Sample replacements: {str(dict(list(replacements.items())[:3]))}")
                 
                 # Save document
                 filename = f"Letter_{str(customer_name).replace(' ', '_').replace('/', '_')}.docx"
