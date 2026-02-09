@@ -130,17 +130,8 @@ if menu == "🏠 Home":
 elif menu == "📧 Generate Letters":
     st.markdown("Generate personalized Word documents for bulk mailing to customers")
     
-    # Sidebar Configuration
+    # Sidebar - Only date configuration
     with st.sidebar:
-        st.header("⚙️ Configuration")
-        
-        company_name = st.text_input("Company Name", value="Your Company Name")
-        company_address = st.text_input("Company Address", value="Your Address")
-        company_contact = st.text_input("Contact Info (Email/Phone)", value="[Email/Phone]")
-        sender_name = st.text_input("Sender Name", value="Your Name")
-        sender_title = st.text_input("Sender Title", value="Your Title")
-        
-        st.divider()
         st.subheader("📅 Letter Date")
         letter_date = st.date_input("Select date for letters", value=datetime.now().date())
         letter_date_str = letter_date.strftime('%B %d, %Y')
