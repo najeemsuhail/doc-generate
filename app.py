@@ -38,6 +38,11 @@ with st.sidebar:
     company_contact = st.text_input("Contact Info (Email/Phone)", value="[Email/Phone]")
     sender_name = st.text_input("Sender Name", value="Your Name")
     sender_title = st.text_input("Sender Title", value="Your Title")
+    
+    st.divider()
+    st.subheader("📅 Letter Date")
+    letter_date = st.date_input("Select date for letters", value=datetime.now().date())
+    letter_date_str = letter_date.strftime('%B %d, %Y')
 
 # Main content
 col1, col2 = st.columns([1.5, 1])
@@ -182,7 +187,7 @@ if uploaded_file:
                 header_para.add_run(header_text).font.size = Pt(10)
                 
                 # Date
-                doc.add_paragraph(f"\nDate: {datetime.now().strftime('%B %d, %Y')}\n")
+                doc.add_paragraph(f"\nDate: {letter_date_str}\n")
                 
                 # Recipient address
                 recipient_para = doc.add_paragraph()
