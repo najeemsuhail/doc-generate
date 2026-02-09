@@ -31,27 +31,44 @@ st.markdown("""
 st.title("📧 Customer Letter Generator")
 
 # Helper function to replace text in Word document
-def replace_text_in_paragraph(paragraph, key, value):
-    """Replace placeholder text in paragraph"""
-    if key in paragraph.text:
-        for run in paragraph.runs:
-            if key in run.text:
-                run.text = run.text.replace(key, str(value))
+def replace_text_in_paragraph(paragraph, replacements):
+    """Replace all placeholders in a paragraph, handling split runs"""
+    # Get full paragraph text
+    full_text = paragraph.text
+    
+    # Check if any replacement is needed
+    needs_replacement = any(key in full_text for key in replacements.keys())
+    
+    if not needs_replacement:
+        return
+    
+    # Replace all placeholders in the full text
+    new_text = full_text
+    for key, value in replacements.items():
+        new_text = new_text.replace(key, str(value))
+    
+    # Clear existing runs
+    for run in paragraph.runs:
+        run.text = ""
+    
+    # Add new text as single run
+    if paragraph.runs:
+        paragraph.runs[0].text = new_text
+    else:
+        paragraph.add_run(new_text)
 
 def replace_text_in_document(doc, replacements):
     """Replace all placeholders in document with customer data"""
     # Replace in paragraphs
     for paragraph in doc.paragraphs:
-        for key, value in replacements.items():
-            replace_text_in_paragraph(paragraph, key, str(value))
+        replace_text_in_paragraph(paragraph, replacements)
     
     # Replace in tables
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
-                    for key, value in replacements.items():
-                        replace_text_in_paragraph(paragraph, key, str(value))
+                    replace_text_in_paragraph(paragraph, replacements)
     
     return doc
 
