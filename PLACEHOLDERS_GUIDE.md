@@ -16,10 +16,10 @@ Where `COLUMN_NAME` is **any column name from your Excel file**.
 ## Example
 
 ### Your Excel File has these columns:
-| SSA | Billing Account | CUSTOMER NAME | Department | Outstanding amount in Rs | CLOSURE DATE |
-|-----|-----------------|---------------|------------|---------------------------|--------------|
-| SSA-001 | ACC-12345 | John Smith | Sales | 5000.50 | 2026-03-01 |
-| SSA-002 | ACC-67890 | Jane Doe | Support | 2500.75 | 2026-04-15 |
+| SSA | Billing Account | CUSTOMER NAME | Department | Outstanding amount in Rs |
+|-----|-----------------|---------------|------------|---------------------------|
+| SSA-001 | ACC-12345 | John Smith | Sales | 5000.50 |
+| SSA-002 | ACC-67890 | Jane Doe | Support | 2500.75 |
 
 ### In Your Word Template, you can use:
 
@@ -27,7 +27,6 @@ Where `COLUMN_NAME` is **any column name from your Excel file**.
 ```
 {CUSTOMER NAME}
 {Outstanding amount in Rs}
-{CLOSURE DATE}
 {Billing Account}
 {Department}
 {SSA}
@@ -37,7 +36,6 @@ Where `COLUMN_NAME` is **any column name from your Excel file**.
 ```
 {CUSTOMER_NAME}
 {Outstanding_amount_in_Rs}
-{CLOSURE_DATE}
 ```
 
 **No spaces (combined):**
@@ -69,7 +67,6 @@ This is to remind you of outstanding dues for account {Billing Account}.
 
 Outstanding Amount: Rs. {Outstanding amount in Rs}/-
 Department: {Department}
-Service Closure Date: {CLOSURE DATE}
 
 Please settle the amount at your earliest convenience.
 
@@ -87,7 +84,6 @@ This is to remind you of outstanding dues for account ACC-12345.
 
 Outstanding Amount: Rs. 5000.50/-
 Department: Sales
-Service Closure Date: 2026-03-01
 
 Please settle the amount at your earliest convenience.
 
@@ -133,7 +129,6 @@ The app automatically handles:
 | `{Address}` | Customer address | 123 Main St |
 | `{SSA}` | SSA code | SSA-001 |
 | `{Status(Active/Inactive)}` | Account status | Active |
-| `{CLOSURE DATE}` | Service closure date | 2026-03-01 |
 | `{Accot Subtype}` | Account subtype | Premium |
 
 **Note:** Any column from your Excel file can be used as a placeholder!
