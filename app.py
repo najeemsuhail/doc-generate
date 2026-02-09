@@ -224,32 +224,34 @@ elif menu == "📧 Generate Letters":
                 address = customer.get('Address', '')
                 status = str(customer.get('Status(Active/Inactive)', 'Active')).lower().strip()
                 
-                # Create replacement dictionary
-                replacements = {
-                    # Uppercase versions (template standard)
-                    '{CUSTOMER_NAME}': customer_name,
-                    '{ADDRESS}': address,
-                    '{BILLING_ACCOUNT}': billing_account,
-                    '{DEPARTMENT}': department,
-                    '{OUTSTANDING_AMOUNT}': f"₹{outstanding:,.2f}",
-                    '{STATUS}': status.capitalize(),
-                    '{DATE}': letter_date_str,
-                    '{COMPANY_NAME}': company_name,
-                    '{SENDER_NAME}': sender_name,
-                    '{CLOSURE_DATE}': letter_date_str,  # Alternative name
-                    '{CLOSURE DATE}': letter_date_str,  # With space
-                    # Lowercase versions (backward compatibility)
-                    '{customer_name}': customer_name,
-                    '{address}': address,
-                    '{billing_account}': billing_account,
-                    '{department}': department,
-                    '{outstanding}': f"{outstanding:,.2f}",
-                    '{outstanding:,.2f}': f"{outstanding:,.2f}",
-                    '{status}': status,
-                    '{date}': letter_date_str,
-                    '{company_name}': company_name,
-                    '{sender_name}': sender_name,
-                }
+                # Create replacement dictionary - automatically from all Excel columns
+                replacements = {}
+                
+                # Add all columns as placeholders (with various formatting)
+                for col_name in df.columns:
+                    col_value = str(customer.get(col_name, ''))
+                    
+                    # Create placeholders with different formats
+                    replacements[f'{{{col_name}}}'] = col_value  # {CUSTOMER NAME}
+                    replacements[f'{{{col_name.replace(" ", "_")}}}'] = col_value  # {CUSTOMER_NAME}
+                    replacements[f'{{{col_name.replace(" ", "")}}}'] = col_value  # {CUSTOMERNAME}
+                    replacements[f'{{{col_name.upper()}}}'] = col_value  # Uppercase
+                    replacements[f'{{{col_name.lower()}}}'] = col_value  # Lowercase
+                
+                # Also add special formatted versions for outstanding amount
+                try:
+                    outstanding_amount = float(customer.get('Outstanding amount in Rs', 0))
+                    replacements['{Outstanding amount in Rs}'] = f"{outstanding_amount:,.2f}"
+                    replacements['{outstanding:,.2f}'] = f"{outstanding_amount:,.2f}"
+                    replacements['{outstanding}'] = f"{outstanding_amount:,.2f}"
+                except:
+                    pass
+                
+                # Add date
+                replacements['{DATE}'] = letter_date_str
+                replacements['{date}'] = letter_date_str
+                replacements['{CLOSURE DATE}'] = letter_date_str
+                replacements['{CLOSURE_DATE}'] = letter_date_str
                 
                 # Use Word template
                 doc = deepcopy(template_doc)
