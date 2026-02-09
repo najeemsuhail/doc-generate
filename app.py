@@ -47,14 +47,20 @@ def replace_text_in_paragraph(paragraph, replacements):
     for key, value in replacements.items():
         new_text = new_text.replace(key, str(value))
     
-    # Remove all runs from the paragraph
-    for run in paragraph.runs:
+    # Remove all runs from the paragraph (clear the list first)
+    for run in list(paragraph.runs):
         r = run._element
         r.getparent().remove(r)
     
-    # Add the new text as a single run (this actually works)
-    if new_text:
-        paragraph.add_run(new_text)
+    # Add the replaced text as a new run
+    if new_text.strip():
+        new_run = paragraph.add_run(new_text)
+        # Copy formatting from original if possible
+        if paragraph.runs:
+            try:
+                new_run.font.size = paragraph.runs[0].font.size
+            except:
+                pass
 
 def replace_text_in_document(doc, replacements):
     """Replace all placeholders in document with customer data"""
