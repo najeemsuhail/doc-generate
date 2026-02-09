@@ -47,15 +47,13 @@ def replace_text_in_paragraph(paragraph, replacements):
     for key, value in replacements.items():
         new_text = new_text.replace(key, str(value))
     
-    # Clear existing runs
-    for run in paragraph.runs:
-        run.text = ""
+    # Clear all runs
+    for _ in range(len(paragraph.runs)):
+        r = paragraph.runs[0]._element
+        r.getparent().remove(r)
     
-    # Add new text as single run
-    if paragraph.runs:
-        paragraph.runs[0].text = new_text
-    else:
-        paragraph.add_run(new_text)
+    # Add the new text (preserves paragraph formatting)
+    paragraph.text = new_text
 
 def replace_text_in_document(doc, replacements):
     """Replace all placeholders in document with customer data"""
@@ -69,6 +67,10 @@ def replace_text_in_document(doc, replacements):
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
                     replace_text_in_paragraph(paragraph, replacements)
+                # Also handle cell text directly (some cells might not have paragraphs)
+                if cell.text:
+                    for key, value in replacements.items():
+                        cell.text = cell.text.replace(key, str(value))
     
     return doc
 
@@ -399,24 +401,28 @@ To prevent further action, please settle this amount immediately."""
                 
                 # Create replacement dictionary
                 replacements = {
+                    # Uppercase versions (template standard)
                     '{CUSTOMER_NAME}': customer_name,
-                    '{customer_name}': customer_name,
                     '{ADDRESS}': address,
-                    '{address}': address,
                     '{BILLING_ACCOUNT}': billing_account,
-                    '{billing_account}': billing_account,
                     '{DEPARTMENT}': department,
-                    '{department}': department,
                     '{OUTSTANDING_AMOUNT}': f"₹{outstanding:,.2f}",
+                    '{STATUS}': status.capitalize(),
+                    '{DATE}': letter_date_str,
+                    '{COMPANY_NAME}': company_name,
+                    '{SENDER_NAME}': sender_name,
+                    '{CLOSURE_DATE}': letter_date_str,  # Alternative name
+                    '{CLOSURE DATE}': letter_date_str,  # With space
+                    # Lowercase versions (backward compatibility)
+                    '{customer_name}': customer_name,
+                    '{address}': address,
+                    '{billing_account}': billing_account,
+                    '{department}': department,
                     '{outstanding}': f"{outstanding:,.2f}",
                     '{outstanding:,.2f}': f"{outstanding:,.2f}",
-                    '{STATUS}': status.capitalize(),
                     '{status}': status,
-                    '{DATE}': letter_date_str,
                     '{date}': letter_date_str,
-                    '{COMPANY_NAME}': company_name,
                     '{company_name}': company_name,
-                    '{SENDER_NAME}': sender_name,
                     '{sender_name}': sender_name,
                 }
                 
