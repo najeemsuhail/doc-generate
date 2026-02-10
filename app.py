@@ -226,6 +226,7 @@ elif menu == "📧 Generate Letters":
                 billing_account = customer.get('Billing Account', '')
                 department = customer.get('Department', '')
                 address = customer.get('Address', '')
+                landline = customer.get('Landline', '')
                 status = str(customer.get('Status(Active/Inactive)', 'Active')).lower().strip()
                 
                 # Create replacement dictionary - automatically from all Excel columns
@@ -250,6 +251,11 @@ elif menu == "📧 Generate Letters":
                     replacements['{outstanding}'] = f"{outstanding_amount:,.2f}"
                 except:
                     pass
+                
+                # Add landline field variations
+                replacements['{Landline}'] = landline
+                replacements['{LANDLINE}'] = landline
+                replacements['{landline}'] = landline
                 
                 # Add date
                 replacements['{DATE}'] = letter_date_str
@@ -309,8 +315,7 @@ elif menu == "📚 Help":
         | CUSTOMER NAME | Text | John Smith |
         | Accot Subtype | Text | Premium |
         | Department | Text | Sales |
-        | Address | Text | 123 Main St |
-        | Status(Active/Inactive) | Text | Active |
+        | Address | Text | 123 Main St |        | Landline | Text | 040-12345678 |        | Status(Active/Inactive) | Text | Active |
         | Outstanding amount in Rs | Number | 5000.00 |
         | CLOSURE DATE | Date | 2026-03-01 |
         """)
@@ -332,6 +337,7 @@ elif menu == "📚 Help":
            - `{Outstanding amount in Rs}` - Outstanding amount
            - `{Department}` - Department
            - `{Address}` - Customer address
+           - `{Landline}` - Landline number
            - `{CLOSURE DATE}` - Closure date
            - `{Status(Active/Inactive)}` - Account status
            - **Any column from your Excel file!**
