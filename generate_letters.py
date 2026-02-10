@@ -4,6 +4,7 @@ from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from datetime import datetime
 import os
+import uuid
 
 def create_customer_letters(excel_file, output_folder='output_letters'):
     """
@@ -115,9 +116,11 @@ We value your business and look forward to a continued relationship with you.
             "[Company Name]"
         )
         
-        # Save document with customer name
+        # Save document with customer name and unique identifier
         customer_name = str(customer.get('CUSTOMER NAME', 'Customer')).replace(' ', '_').replace('/', '_')
-        filename = os.path.join(output_folder, f"Letter_{customer_name}.docx")
+        # Add billing account number and index to ensure uniqueness
+        billing_account = str(customer.get('Billing Account', idx)).replace(' ', '_').replace('/', '_')
+        filename = os.path.join(output_folder, f"Letter_{customer_name}_{billing_account}_{idx:03d}.docx")
         doc.save(filename)
         print(f"✓ Generated: {filename}")
     

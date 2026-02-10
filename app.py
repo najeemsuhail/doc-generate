@@ -261,13 +261,6 @@ elif menu == "📧 Generate Letters":
                 doc = Document(temp_template_path)
                 replaced_count = replace_text_in_document(doc, replacements, debug=False)
                 
-                # Show debug info for first letter only
-                if idx == 0:
-                    st.write(f"**DEBUG - First Letter ({customer_name}):**")
-                    st.write(f"Replacements created: {len(replacements)}")
-                    st.write(f"Replaced in: {replaced_count} locations")
-                    st.write(f"Sample replacements: {str(dict(list(replacements.items())[:3]))}")
-                
                 # Save document
                 filename = f"Letter_{str(customer_name).replace(' ', '_').replace('/', '_')}.docx"
                 doc.save(filename)
