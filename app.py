@@ -260,8 +260,6 @@ elif menu == "📧 Generate Letters":
                 # Add date
                 replacements['{DATE}'] = letter_date_str
                 replacements['{date}'] = letter_date_str
-                replacements['{CLOSURE DATE}'] = letter_date_str
-                replacements['{CLOSURE_DATE}'] = letter_date_str
                 
                 # Load fresh template for each customer (instead of deepcopy)
                 doc = Document(temp_template_path)
