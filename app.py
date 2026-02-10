@@ -315,7 +315,9 @@ elif menu == "📚 Help":
         | CUSTOMER NAME | Text | John Smith |
         | Accot Subtype | Text | Premium |
         | Department | Text | Sales |
-        | Address | Text | 123 Main St |        | Landline | Text | 040-12345678 |        | Status(Active/Inactive) | Text | Active |
+        | Address | Text | 123 Main St |
+        | Landline | Text | 040-12345678 |
+        | Status(Active/Inactive) | Text | Active |
         | Outstanding amount in Rs | Number | 5000.00 |
         | CLOSURE DATE | Date | 2026-03-01 |
         """)
